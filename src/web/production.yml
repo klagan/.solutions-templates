@@ -1,0 +1,16 @@
+steps:
+  - task: DotNetCoreCLI@2
+    displayName: 'package production artefacts [$(buildConfiguration)]'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    inputs:
+      command: pack
+      versioningScheme: byBuildNumber
+      verbosityPack: Minimal
+      outputDir: '$(build.artifactStagingDirectory)'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'push packages to production feed'
+    inputs:
+      command: push
+      searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+      feedPublish: 'production-feed'

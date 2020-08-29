@@ -1,0 +1,13 @@
+parameters:
+  - name: majorVersion
+  - name: minorVersion
+  - name: patchVersion
+
+steps:
+  - task: DotNetCoreCLI@2
+    displayName: 'package pre-release artefacts [$(buildConfiguration)]'
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+    inputs:
+…      command: push
+  searchPatternPush: '$(build.artifactStagingDirectory)/*.nupkg;!$(Build.artifactStagingDirectory)/*.tests.nupkg'
+  feedPublish: 'pre-production-feed'

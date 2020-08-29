@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>Template.Package</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include=".template.config\template.json" />
+  </ItemGroup>
+
+</Project>

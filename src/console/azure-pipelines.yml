@@ -1,0 +1,88 @@
+name: 1.0$(rev:.r)
+
+parameters:
+  - name: AgentName
+    type: string
+    default: 'Azure Pipelines'
+    values:
+      - 'Azure Pipelines'
+      - 'Linux Agents'
+      - 'MS Windows Agents'
+
+# Defines which branches will trigger a build on change
+trigger:
+  branches:
+    include:
+      - master
+      - feature/*
+      - develop/*
+      - task/*
+      - hotfix/*
+
+variables:
+  buildConfiguration: 'Release'
+  buildProjects: '**/*.csproj'
+  buildPlatform: 'x64'
+  buildNumberFormat: '1.0$(Rev:.r)'
+  testProjects: '**/*[Tt]ests/*.csproj'
+  symbolsArtifactName: 'Symbols_$(buildConfiguration)'
+  Major: '1'
+  Minor: '0'
+  Patch: '0'
+
+stages:
+  - stage: "Build"
+    pool:
+      name: ${{ parameters.AgentName }}
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job:
+        displayName: "Build package"
+        steps:
+
+          - checkout: self
+            persistCredentials: true
+            clean: true
+
+          - task: DotNetCoreCLI@2
+            displayName: restore packages
+            inputs:
+              command: restore
+              feedsToUse: config
+              nugetConfigPath: nuget.config
+              projects: |
+                $(buildProjects)
+
+          - task: DotNetCoreCLI@2
+            displayName: build all projects
+            inputs:
+              projects: $(buildProjects)
+              packDirectory: '$(Build.ArtifactStagingDirectory)'
+              arguments: '-c $(buildConfiguration) /p:Version=$(Build.BuildNumber)'
+
+          - task: DotNetCoreCLI@2
+            displayName: run test projects
+            inputs:
+              command: test
+              projects: $(testProjects)
+              publishTestResults: true
+              arguments: '--no-build -c $(buildConfiguration)'
+
+          - task: DotNetCoreCLI@2
+            displayName: publish build artifacts
+            inputs:
+              command: publish
+              publishWebProjects: false
+              arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
+
+          - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+              - template: production.yml
+
+          - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+              - template: pre-production.yml
+                parameters:
+                  majorVersion: $(Major)
+                  minorVersion: $(Minor)
+                  patchVersion: $(Patch)
+
+

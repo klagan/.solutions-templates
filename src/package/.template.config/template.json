@@ -1,0 +1,11 @@
+﻿{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Kam Lagan",
+  "classifications": [ "package" ],
+  "tags" : { "language": "c#", "type" : "project" },
+  "identity": "package-template",
+  "name": "Package Template",
+  "shortName": "package",
+  "preferNameDirectory": true,
+  "sourceName": "package.template"
+}
